@@ -616,25 +616,30 @@ if daily_data is not None and len(daily_data) > 0:
                     
                 elif "ARIMA" in selected_model and ARIMA_AVAILABLE:
                     # ARIMAモデル
-                    # 予測に使用するデータを直近6か月に制限
-                    arima_months_limit = 6  # 使用する月数
+                    # 予測に使用するデータを直近3か月に制限（処理速度向上のため）
+                    arima_months_limit = 3  # 使用する月数
                     quantity_series_last_date = quantity_series['ds'].max()
                     quantity_series_start_date = quantity_series_last_date - pd.DateOffset(months=arima_months_limit)
                     quantity_series_limited = quantity_series[quantity_series['ds'] >= quantity_series_start_date].copy()
                     
+                    # さらにデータ点数を制限（最大90日分）して処理速度を向上
+                    max_data_points = 90
+                    if len(quantity_series_limited) > max_data_points:
+                        quantity_series_limited = quantity_series_limited.tail(max_data_points).reset_index(drop=True)
+                    
                     # m=365は計算が重すぎるため、週次季節性のみを使用
-                    # パラメータの範囲を制限して高速化
+                    # パラメータの範囲をさらに制限して高速化
                     model_q = auto_arima(
                         quantity_series_limited['y'],
                         seasonal=True,
                         m=7,  # 週次季節性のみ（m=365は計算が重すぎる）
                         stepwise=True,
                         suppress_warnings=True,
-                        max_p=5,
-                        max_q=5,
+                        max_p=3,  # 5から3に削減
+                        max_q=3,  # 5から3に削減
                         max_d=2,
-                        max_P=2,
-                        max_Q=2,
+                        max_P=1,  # 2から1に削減
+                        max_Q=1,  # 2から1に削減
                         max_D=1,
                         start_p=0,
                         start_q=0,
@@ -683,25 +688,30 @@ if daily_data is not None and len(daily_data) > 0:
                     
                 elif "ARIMA" in selected_model and ARIMA_AVAILABLE:
                     # ARIMAモデル
-                    # 予測に使用するデータを直近6か月に制限
-                    arima_months_limit = 6  # 使用する月数
+                    # 予測に使用するデータを直近3か月に制限（処理速度向上のため）
+                    arima_months_limit = 3  # 使用する月数
                     amount_series_last_date = amount_series['ds'].max()
                     amount_series_start_date = amount_series_last_date - pd.DateOffset(months=arima_months_limit)
                     amount_series_limited = amount_series[amount_series['ds'] >= amount_series_start_date].copy()
                     
+                    # さらにデータ点数を制限（最大90日分）して処理速度を向上
+                    max_data_points = 90
+                    if len(amount_series_limited) > max_data_points:
+                        amount_series_limited = amount_series_limited.tail(max_data_points).reset_index(drop=True)
+                    
                     # m=365は計算が重すぎるため、週次季節性のみを使用
-                    # パラメータの範囲を制限して高速化
+                    # パラメータの範囲をさらに制限して高速化
                     model_a = auto_arima(
                         amount_series_limited['y'],
                         seasonal=True,
                         m=7,  # 週次季節性のみ（m=365は計算が重すぎる）
                         stepwise=True,
                         suppress_warnings=True,
-                        max_p=5,
-                        max_q=5,
+                        max_p=3,  # 5から3に削減
+                        max_q=3,  # 5から3に削減
                         max_d=2,
-                        max_P=2,
-                        max_Q=2,
+                        max_P=1,  # 2から1に削減
+                        max_Q=1,  # 2から1に削減
                         max_D=1,
                         start_p=0,
                         start_q=0,
